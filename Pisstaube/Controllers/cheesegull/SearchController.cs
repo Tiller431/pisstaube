@@ -121,11 +121,9 @@ namespace Pisstaube.Controllers.cheesegull
                     goto Return;
                 }
 
-                ca = string.Empty;
-
-                ca += beatmapSets.Length >= 100 ? "101" : beatmapSets.Length.ToString();
-
-                ca += "\n";
+                ca = beatmapSets.Length >= 100
+                    ? "101"
+                    : beatmapSets.Length + "\n";
 
                 foreach (var set in beatmapSets) ca += set.ToDirect();
             }
