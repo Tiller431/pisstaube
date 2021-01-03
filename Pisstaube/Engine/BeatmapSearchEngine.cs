@@ -33,7 +33,7 @@ namespace Pisstaube.Engine
                 .EnableHttpCompression()
                 .RequestTimeout(new TimeSpan(0, 10, 0))
                 .DefaultIndex("pisstaube");
-
+            
             _elasticClient = new ElasticClient(settings);
         }
 

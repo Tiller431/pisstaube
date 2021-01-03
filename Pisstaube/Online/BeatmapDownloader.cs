@@ -65,7 +65,7 @@ namespace Pisstaube.Online
         public (FileInfo, string) Download(string beatmap)
         {
             var req = new FileWebRequest(
-                _tmpStorage.GetFullPath(beatmap.ToString(), true),
+                _tmpStorage.GetFullPath(beatmap, true),
                 $"https://osu.ppy.sh/osu/{beatmap}");
 
             _limiter.Limit();
@@ -74,7 +74,7 @@ namespace Pisstaube.Online
 
             string fileMd5;
             FileInfo info;
-            using (var f = _tmpStorage.GetStream(beatmap.ToString(), FileAccess.Read, FileMode.Open))
+            using (var f = _tmpStorage.GetStream(beatmap, FileAccess.Read, FileMode.Open))
             {
                 using var db = _cache.GetForWrite();
                 info = _store.Add(f);

@@ -16,7 +16,7 @@ namespace Pisstaube.Controllers.cheesegull
     public class BeatmapController : ControllerBase
     {
         private readonly PisstaubeDbContext _dbContext;
-        private object _dbContextLock = new object();
+        private object _dbContextLock = new();
 
         public BeatmapController(PisstaubeDbContext dbContext) => _dbContext = dbContext;
 

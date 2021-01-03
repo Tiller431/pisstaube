@@ -65,7 +65,9 @@ services:
       - MYSQL_ROOT_HOST=%
     expose:
       - 3306
-
+    ports:
+      - 3306:3306
+  
   datadog:
     image: datadog/docker-dd-agent:latest
     depends_on:

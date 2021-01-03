@@ -72,7 +72,7 @@ namespace Pisstaube.Controllers.cheesegull
             GetTryFromQuery(new[] {"mode", "m"}, (int) PlayMode.All, out var mode);
             GetTryFromQuery(new[] {"status", "r"}, null, out int? r);
             
-            if (ruri == true && r.HasValue) {
+            if (ruri && r.HasValue) {
                 r = r switch {
                     4 => (int) BeatmapSetOnlineStatus.None,
                     0 => (int) BeatmapSetOnlineStatus.Ranked,
@@ -81,6 +81,8 @@ namespace Pisstaube.Controllers.cheesegull
                     3 => (int) BeatmapSetOnlineStatus.Qualified,
                     2 => (int) BeatmapSetOnlineStatus.Pending,
                     5 => (int) BeatmapSetOnlineStatus.Graveyard,
+                    
+                    _ => (int) BeatmapSetOnlineStatus.Graveyard,
                 };
             }
 
@@ -120,7 +122,7 @@ namespace Pisstaube.Controllers.cheesegull
 
                 ca = string.Empty;
 
-                ca += beatmapSets.Count() >= 100 ? "101" : beatmapSets.Count().ToString();
+                ca += beatmapSets.Length >= 100 ? "101" : beatmapSets.Length.ToString();
 
                 ca += "\n";
 
