@@ -29,7 +29,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Controllers\bloodcat" />
       <Folder Include="data\wwwroot" />
     </ItemGroup>
 

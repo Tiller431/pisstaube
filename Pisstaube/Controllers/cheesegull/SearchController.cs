@@ -12,7 +12,8 @@ using StatsdClient;
 
 namespace Pisstaube.Controllers.cheesegull
 {
-    [Route("api/cheesegull/[controller]")]
+    [Route("api/cheesegull/[controller]"),
+     Route("api/bloodcat/[controller]"),]
     [ApiController]
     public class SearchController : ControllerBase
     {
