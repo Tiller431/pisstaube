@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Distributed;
 using osu.Game.Beatmaps;
 using Pisstaube.Allocation;
 using Pisstaube.Database.Models;
@@ -18,15 +20,15 @@ namespace Pisstaube.Controllers.cheesegull
     public class SearchController : ControllerBase
     {
         private readonly IBeatmapSearchEngineProvider _searchEngine;
-        private readonly Cache _cache;
+        private readonly IDistributedCache _cache;
 
-        public SearchController(IBeatmapSearchEngineProvider searchEngine, Cache cache)
+        public SearchController(IBeatmapSearchEngineProvider searchEngine, IDistributedCache cache)
         {
             _searchEngine = searchEngine;
             _cache = cache;
         }
 
-        private bool GetTryFromQuery<T>(IEnumerable<string> keys, T def, out T val)
+        private bool TryGetFromQuery<T>(IEnumerable<string> keys, T def, out T val)
         {
             var rString = string.Empty;
 
@@ -57,7 +59,7 @@ namespace Pisstaube.Controllers.cheesegull
 
         // GET /api/cheesegull/search
         [HttpGet]
-        public ActionResult<string> Get()
+        public async Task<ActionResult> Get()
         {
             DogStatsd.Increment("beatmap.searches");
             if (!GlobalConfig.EnableSearch)
@@ -66,12 +68,12 @@ namespace Pisstaube.Controllers.cheesegull
             var raw = Request.Query.ContainsKey("raw");
             var ruri = Request.Query.ContainsKey("ruri");
 
-            GetTryFromQuery(new[] {"query", "q"}, string.Empty, out var query);
-            GetTryFromQuery(new[] {"amount", "a"}, 100, out var amount);
-            GetTryFromQuery(new[] {"offset", "o"}, 0, out var offset);
-            GetTryFromQuery(new[] {"page", "p"}, 0, out var page);
-            GetTryFromQuery(new[] {"mode", "m"}, (int) PlayMode.All, out var mode);
-            GetTryFromQuery(new[] {"status", "r"}, null, out int? r);
+            TryGetFromQuery(new[] {"query", "q"}, string.Empty, out var query);
+            TryGetFromQuery(new[] {"amount", "a"}, 100, out var amount);
+            TryGetFromQuery(new[] {"offset", "o"}, 0, out var offset);
+            TryGetFromQuery(new[] {"page", "p"}, 0, out var page);
+            TryGetFromQuery(new[] {"mode", "m"}, (int) PlayMode.All, out var mode);
+            TryGetFromQuery(new[] {"status", "r"}, null, out int? r);
             
             if (ruri && r.HasValue) {
                 r = r switch {
@@ -98,10 +100,11 @@ namespace Pisstaube.Controllers.cheesegull
                 query.ToLower().Equals("most played")) // and this
                 query = "";
 
-            var ha = query + amount + offset + status + mode + page + raw;
+            var ha = "pisstaube:cache:search" + query + amount + offset + status + mode + page + raw;
 
-            if (_cache.TryGet(ha, out string ca))
-                return ca;
+            var ca = await _cache.GetStringAsync(ha);
+            if (ca != null)
+                return Ok(ca);
 
             var result = _searchEngine.Search(query, amount, offset, status, (PlayMode) mode);
             
@@ -129,8 +132,12 @@ namespace Pisstaube.Controllers.cheesegull
             }
 
             Return:
-            _cache.Set(ha, ca, TimeSpan.FromMinutes(10));
-            return ca;
+            await _cache.SetStringAsync(ha, ca, new DistributedCacheEntryOptions
+            {
+                AbsoluteExpiration = DateTimeOffset.Now.AddMinutes(10)
+            });
+            
+            return Ok(ca);
         }
     }
 }

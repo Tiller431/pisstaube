@@ -77,6 +77,24 @@ namespace Pisstaube
                     }
                 );
             });
+
+            services.AddStackExchangeRedisCache(ops =>
+            {
+                var host = Environment.GetEnvironmentVariable("REDIS_HOST");
+                var port = Environment.GetEnvironmentVariable("REDIS_PORT");
+                var pass = Environment.GetEnvironmentVariable("REDIS_PASSWORD");
+                var database = Environment.GetEnvironmentVariable("REDIS_DATABASE");
+                
+                var connString = $"{host}";
+                if (!string.IsNullOrEmpty(port))
+                    connString += $":{port}";
+                if (!string.IsNullOrEmpty(pass))
+                    connString += $",password={pass}";
+                if (!string.IsNullOrEmpty(database))
+                    connString += $",defaultDatabase={database}";
+                
+                ops.Configuration = connString;
+            });
             
             var builder = new ContainerBuilder();
             
@@ -84,7 +102,6 @@ namespace Pisstaube
             builder.RegisterType<OsuCrawler>().AsSelf().As<ICrawler>().SingleInstance();
             builder.RegisterType<DatabaseHouseKeeper>().SingleInstance();
             
-            builder.RegisterType<Cache>().SingleInstance();
             builder.RegisterType<IpfsCache>().SingleInstance();
             
             builder.RegisterInstance(new RequestLimiter(1200, TimeSpan.FromMinutes(1)));
