@@ -3,8 +3,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using osu.Framework.Logging;
-using Pisstaube.Database;
-using Pisstaube.Engine;
+using Pisstaube.Core.Database;
+using Pisstaube.Core.Engine;
 using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 using Pomelo.EntityFrameworkCore.MySql.Storage;
 

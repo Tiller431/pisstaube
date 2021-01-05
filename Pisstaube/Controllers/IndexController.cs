@@ -10,7 +10,7 @@ using osu.Game.IO;
 using osu.Game.Online.API;
 using osu.Game.Scoring.Legacy;
 using Pisstaube.CacheDb;
-using Pisstaube.Database;
+using Pisstaube.Core.Database;
 using Pisstaube.Online;
 using Pisstaube.Utils;
 using StatsdClient;

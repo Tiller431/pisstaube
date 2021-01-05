@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
-using Pisstaube.Database;
-using Pisstaube.Database.Models;
+using Pisstaube.Core.Database;
+using Pisstaube.Core.Database.Models;
 using Pisstaube.Utils;
 using StatsdClient;
 

@@ -7,8 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Distributed;
 using osu.Game.Beatmaps;
 using Pisstaube.Allocation;
-using Pisstaube.Database.Models;
-using Pisstaube.Engine;
+using Pisstaube.Core.Database.Models;
+using Pisstaube.Core.Engine;
 using Pisstaube.Utils;
 using StatsdClient;
 
