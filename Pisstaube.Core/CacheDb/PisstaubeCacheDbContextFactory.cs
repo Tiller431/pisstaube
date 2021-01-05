@@ -14,7 +14,7 @@ namespace Pisstaube.CacheDb
 
         private ThreadLocal<PisstaubeCacheDbContext> _threadContexts;
 
-        private readonly object _writeLock = new object();
+        private readonly object _writeLock = new();
 
         private bool _currentWriteDidWrite;
         private bool _currentWriteDidError;
@@ -103,7 +103,7 @@ namespace Pisstaube.CacheDb
         }
 
         private PisstaubeCacheDbContext CreateContext() =>
-            new PisstaubeCacheDbContext(_storage.GetDatabaseConnectionString(DatabaseName))
+            new(_storage.GetDatabaseConnectionString(DatabaseName))
             {
                 Database = {AutoTransactionsEnabled = false}
             };

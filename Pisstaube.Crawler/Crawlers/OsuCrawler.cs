@@ -36,7 +36,7 @@ namespace Pisstaube.Crawler.Crawlers
         private Thread _workingThread;
         private CancellationTokenSource _cancellationTokenSource;
         
-        protected List<Task> Tasks { get; } = new List<Task>();
+        protected List<Task> Tasks { get; } = new();
         protected CancellationToken CancellationToken { get; private set; }
         
         public OsuCrawler(Storage storage, RequestLimiter requestLimiter, IAPIProvider apiProvider,

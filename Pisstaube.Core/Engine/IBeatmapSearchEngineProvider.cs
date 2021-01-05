@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using osu.Game.Beatmaps;
 using Pisstaube.Core.Database.Models;
 
@@ -8,9 +9,9 @@ namespace Pisstaube.Core.Engine
     {
         bool IsConnected { get; }
         
-        void Index(IEnumerable<BeatmapSet> sets);
+        Task Index(IEnumerable<BeatmapSet> sets);
 
-        IEnumerable<BeatmapSet> Search(string query,
+        Task<IEnumerable<BeatmapSet>> Search(string query,
             int amount = 100,
             int offset = 0,
             BeatmapSetOnlineStatus? rankedStatus = null,

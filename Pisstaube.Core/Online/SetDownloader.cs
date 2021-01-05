@@ -29,7 +29,7 @@ namespace Pisstaube.Online
         private readonly Storage _storage;
         private readonly IAPIProvider _apiProvider;
         private readonly PisstaubeDbContext _dbContext;
-        private readonly object _dbContextMutes = new object();
+        private readonly object _dbContextMutes = new();
         private readonly PisstaubeCacheDbContextFactory _cacheFactory;
         private readonly RequestLimiter _limiter;
         private readonly IBeatmapSearchEngineProvider _search;

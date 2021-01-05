@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Elasticsearch.Net;
 using Microsoft.EntityFrameworkCore;
 using Nest;
@@ -12,13 +13,13 @@ using LogLevel = osu.Framework.Logging.LogLevel;
 
 namespace Pisstaube.Core.Engine
 {
-    public class BeatmapSearchEngine : IBeatmapSearchEngineProvider
+    public class ElasticBeatmapSearchEngine : IBeatmapSearchEngineProvider
     {
         private readonly PisstaubeDbContext _dbContext;
-        private readonly object _dbContextMutex = new object();
+        private readonly object _dbContextMutex = new();
         private readonly ElasticClient _elasticClient;
 
-        public BeatmapSearchEngine(PisstaubeDbContext dbContext)
+        public ElasticBeatmapSearchEngine(PisstaubeDbContext dbContext)
         {
             _dbContext = dbContext;
             
@@ -39,7 +40,7 @@ namespace Pisstaube.Core.Engine
 
         public bool IsConnected => _elasticClient.Ping().ApiCall.Success;
 
-        public void Index(IEnumerable<BeatmapSet> sets)
+        public async Task Index(IEnumerable<BeatmapSet> sets)
         {
             var elasticBeatmaps = sets.Select(ElasticBeatmap.GetElasticBeatmap).ToList();
 
@@ -49,14 +50,14 @@ namespace Pisstaube.Core.Engine
                 var truncatedBeatmaps = elasticBeatmaps.Skip(c).Take(50_000).ToList(); // Submit beatmaps in Chunks
 
                 // Delete if exists.
-                var r = _elasticClient.DeleteByQuery<ElasticBeatmap>(q => q.Query(
+                var r = await _elasticClient.DeleteByQueryAsync<ElasticBeatmap>(q => q.Query(
                         query => query
                             .Terms(s => s.Field(f => f.Id).Terms(truncatedBeatmaps.Select(bm => bm.Id))))
                 );
                 if (!r.IsValid)
                     Logger.LogPrint(r.DebugInformation, LoggingTarget.Network, LogLevel.Important);
                 
-                var result = _elasticClient.IndexMany(truncatedBeatmaps); // Index all truncated maps at once.
+                var result = await _elasticClient.IndexManyAsync(truncatedBeatmaps); // Index all truncated maps at once.
                 if (!result.IsValid)
                     Logger.LogPrint(result.DebugInformation, LoggingTarget.Network, LogLevel.Important);
                 
@@ -66,7 +67,7 @@ namespace Pisstaube.Core.Engine
             }
         }
         
-        public IEnumerable<BeatmapSet> Search(string query,
+        public async Task<IEnumerable<BeatmapSet>> Search(string query,
             int amount = 100,
             int offset = 0,
             BeatmapSetOnlineStatus? rankedStatus = null,
@@ -75,7 +76,7 @@ namespace Pisstaube.Core.Engine
             if (amount > 100 || amount <= -1)
                 amount = 100;
             
-            var result = _elasticClient.Search<ElasticBeatmap>(s => // Super complex query to search things. also super annoying
+            var result = await _elasticClient.SearchAsync<ElasticBeatmap>(s => // Super complex query to search things. also super annoying
             {
                 var ret = s
                     .From(offset)

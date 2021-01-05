@@ -24,7 +24,7 @@ namespace Pisstaube.Controllers
         private readonly IAPIProvider _apiProvider;
         private readonly Storage _fileStorage;
         private readonly PisstaubeDbContext _dbContext;
-        private readonly object _dbContextLock = new object();
+        private readonly object _dbContextLock = new();
         private readonly PisstaubeCacheDbContextFactory _cache;
         private readonly BeatmapDownloader _downloader;
         private readonly SetDownloader _setDownloader;

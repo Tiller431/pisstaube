@@ -106,7 +106,7 @@ namespace Pisstaube.Controllers.cheesegull
             if (ca != null)
                 return Ok(ca);
 
-            var result = _searchEngine.Search(query, amount, offset, status, (PlayMode) mode);
+            var result = await _searchEngine.Search(query, amount, offset, status, (PlayMode) mode);
             
             var beatmapSets = result as BeatmapSet[] ?? result.ToArray();
             if (beatmapSets.Length == 0) result = null; // Cheesegull logic ^^,

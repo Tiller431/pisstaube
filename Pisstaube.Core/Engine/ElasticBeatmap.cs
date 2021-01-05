@@ -11,17 +11,17 @@ namespace Pisstaube.Core.Engine
     [ElasticsearchType(IdProperty = nameof(Id))]
     public class ElasticBeatmap
     {
-        public int Id;
-        public BeatmapSetOnlineStatus RankedStatus;
+        public int Id { get; set; }
+        public BeatmapSetOnlineStatus RankedStatus{ get; set; }
 
-        public string Artist;
-        public string Title;
-        public string Creator;
-        public List<string> Tags;
-        public List<PlayMode> Mode;
-        public List<string> DiffName;
+        public string Artist { get; set; }
+        public string Title { get; set; }
+        public string Creator { get; set; }
+        public List<string> Tags { get; set; }
+        public List<PlayMode> Mode { get; set; }
+        public List<string> DiffName { get; set; }
 
-        public double ApprovedDate;
+        public double ApprovedDate { get; set; }
 
         public override string ToString() =>
             $"\nSetId: {Id}\n" +

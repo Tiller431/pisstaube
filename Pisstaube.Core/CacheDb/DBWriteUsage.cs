@@ -18,7 +18,7 @@ namespace Pisstaube.CacheDb
         public bool PerformedWrite { get; private set; }
 
         private bool _isDisposed;
-        public List<Exception> Errors = new List<Exception>();
+        public List<Exception> Errors = new();
 
         public bool IsTransactionLeader = false;
 

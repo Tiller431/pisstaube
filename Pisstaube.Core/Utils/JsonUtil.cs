@@ -29,7 +29,7 @@ namespace Pisstaube.Utils
         
         public static T Deserialize<T>(string data) where T : class, new()
         {
-            return new T();
+            return new();
         }
     }
 }

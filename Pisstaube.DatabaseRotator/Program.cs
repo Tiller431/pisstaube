@@ -14,7 +14,7 @@ namespace Pisstaube.DatabaseRotator
     internal static class Program
     {
         private static PisstaubeDbContext _dbContext;
-        private static BeatmapSearchEngine _searchEngine = new BeatmapSearchEngine(_dbContext);
+        private static MeiliBeatmapSearchEngine _searchEngine = new(_dbContext);
         
         private static async Task Main(string[] args)
         {
@@ -49,7 +49,7 @@ namespace Pisstaube.DatabaseRotator
                 .ToListAsync();
             Logger.LogPrint($"{beatmapSets.Count} Beatmap sets to index.", LoggingTarget.Database);
             
-            _searchEngine.Index(beatmapSets);
+            await _searchEngine.Index(beatmapSets);
         }
     }
 }

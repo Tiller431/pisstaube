@@ -107,7 +107,8 @@ namespace Pisstaube
             builder.RegisterType<PisstaubeCacheDbContextFactory>().AsSelf();
             builder.RegisterType<SetDownloader>().AsSelf();
 
-            builder.RegisterType<BeatmapSearchEngine>().As<IBeatmapSearchEngineProvider>();
+            //builder.RegisterType<ElasticBeatmapSearchEngine>().As<IBeatmapSearchEngineProvider>();
+            builder.RegisterType<MeiliBeatmapSearchEngine>().As<IBeatmapSearchEngineProvider>();
             builder.RegisterType<BeatmapDownloader>();
 
             builder.RegisterType<OsuConfigManager>();
