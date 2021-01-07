@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Pisstaube.Core.Database;
 using Pisstaube.Core.Database.Models;
+using Pisstaube.Core.Utils;
 using Pisstaube.Utils;
 using StatsdClient;
 

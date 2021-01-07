@@ -1,18 +1,11 @@
 ﻿using System;
-using System.IO;
 using System.Threading;
 using Autofac;
-using Autofac.Extensions.DependencyInjection;
 using JetBrains.Annotations;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.FileProviders;
-using osu.Framework.Development;
+using Microsoft.EntityFrameworkCore.Internal;
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Caching.StackExchangeRedis;
 using osu.Framework.Logging;
 using osu.Framework.Platform;
 using osu.Game.Configuration;
@@ -24,50 +17,37 @@ using Pisstaube.CacheDb;
 using Pisstaube.Core.Database;
 using Pisstaube.Core.Engine;
 using Pisstaube.Core.Utils;
+using Pisstaube.Crawler.Crawlers;
+using Pisstaube.Crawler.Online;
 using Pisstaube.Online;
 using Pisstaube.Utils;
-using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 using Pomelo.EntityFrameworkCore.MySql.Storage;
-using StatsdClient;
+using StackExchange.Redis;
+using ServerType = Pomelo.EntityFrameworkCore.MySql.Infrastructure.ServerType;
 
-namespace Pisstaube
+namespace Pisstaube.Crawler
 {
-    public class Startup
+    public class Startup : IStartable
     {
         private readonly Storage _dataStorage = new NativeStorage("data");
         private readonly DatabaseContextFactory _osuContextFactory;
-
-        private ILifetimeScope AutofacContainer { get; set; }
         
-        // ReSharper disable once UnusedParameter.Local
-        public Startup(IConfiguration configuration)
+        public Startup()
         {
             _osuContextFactory = new DatabaseContextFactory(_dataStorage);
         }
         
-        public IServiceProvider ConfigureServices(IServiceCollection services)
+        public void ConfigureServices(ContainerBuilder builder)
         {
-            services.AddOptions();
-            services.AddRouting();
-
-            services
-                .AddMvc(
-                    options =>
-                    {
-                        options.OutputFormatters.RemoveType<HttpNoContentOutputFormatter>();
-                        options.EnableEndpointRouting = false;
-                    })
-                .SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
-            
-            services.AddRouting();
-            services.AddDbContextPool<PisstaubeDbContext>(optionsBuilder => {
+            var dbOptionsBuilder = new DbContextOptionsBuilder();
+            {
                 var host = Environment.GetEnvironmentVariable("MARIADB_HOST");
                 var port = Environment.GetEnvironmentVariable("MARIADB_PORT");
                 var username = Environment.GetEnvironmentVariable("MARIADB_USERNAME");
                 var password = Environment.GetEnvironmentVariable("MARIADB_PASSWORD");
                 var db = Environment.GetEnvironmentVariable("MARIADB_DATABASE");
 
-                optionsBuilder.UseMySql(
+                dbOptionsBuilder.UseMySql(
                     $"Server={host};Database={db};User={username};Password={password};Port={port};CharSet=utf8mb4;SslMode=none;",
                     mysqlOptions =>
                     {
@@ -75,9 +55,11 @@ namespace Pisstaube
                         mysqlOptions.CharSet(CharSet.Utf8Mb4);
                     }
                 );
-            });
+            }
+            var pool = new DbContextPool<PisstaubeDbContext>(dbOptionsBuilder.Options);
+            builder.RegisterInstance(pool).AsSelf();
 
-            services.AddStackExchangeRedisCache(ops =>
+            var redisOptions = new RedisCacheOptions();
             {
                 var host = Environment.GetEnvironmentVariable("REDIS_HOST");
                 var port = Environment.GetEnvironmentVariable("REDIS_PORT");
@@ -92,13 +74,12 @@ namespace Pisstaube
                 if (!string.IsNullOrEmpty(database))
                     connString += $",defaultDatabase={database}";
                 
-                ops.Configuration = connString;
-            });
-            
-            var builder = new ContainerBuilder();
-            
-            builder.Populate(services);
-            
+                redisOptions.Configuration = connString;
+            }
+            var redisCache = new RedisCache(redisOptions);
+            builder.RegisterInstance(redisCache).As<IDistributedCache>();
+            builder.RegisterInstance(ConnectionMultiplexer.Connect(redisOptions.Configuration));
+
             builder.RegisterType<IpfsCache>().SingleInstance();
             
             builder.RegisterInstance(new RequestLimiter(1200, TimeSpan.FromMinutes(1)));
@@ -108,20 +89,18 @@ namespace Pisstaube
             builder.RegisterType<PisstaubeCacheDbContextFactory>().AsSelf();
             builder.RegisterType<SetDownloader>().AsSelf();
 
-            //builder.RegisterType<ElasticBeatmapSearchEngine>().As<IBeatmapSearchEngineProvider>();
             builder.RegisterType<MeiliBeatmapSearchEngine>().As<IBeatmapSearchEngineProvider>();
             builder.RegisterType<BeatmapDownloader>();
 
             builder.RegisterType<OsuConfigManager>();
             builder.RegisterType<APIAccess>().As<IAPIProvider>().SingleInstance();
 
-            AutofacContainer = builder.Build();
-            
-            return new AutofacServiceProvider(AutofacContainer);
+            builder.RegisterType<OsuCrawler>();
+            builder.RegisterType<DatabaseHouseKeeper>();
         }
         
         [UsedImplicitly]
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IAPIProvider apiProvider,
+        public void Configure(IAPIProvider apiProvider,
             PisstaubeCacheDbContextFactory cacheDbContextFactory, IBeatmapSearchEngineProvider searchEngine,
             PisstaubeDbContext dbContext)
         {
@@ -141,16 +120,11 @@ namespace Pisstaube
             cacheDbContextFactory.Get().Migrate();
             _osuContextFactory.Get().Migrate();
 
-            DogStatsd.Configure(new StatsdConfig {Prefix = "pisstaube"});
-            
             JsonUtil.Initialize();
 
             apiProvider.Login(Environment.GetEnvironmentVariable("OSU_USERNAME"),
                 Environment.GetEnvironmentVariable("OSU_PASSWORD"));
 
-            GlobalConfig.EnableCrawling = Environment.GetEnvironmentVariable("CRAWLER_DISABLED")?.ToLowerInvariant() == "false";
-            GlobalConfig.EnableUpdating = Environment.GetEnvironmentVariable("UPDATER_DISABLED")?.ToLowerInvariant() == "false";
-            
             while (true)
             {
                 if (!apiProvider.IsLoggedIn)
@@ -167,19 +141,11 @@ namespace Pisstaube
 
                 break;
             }
+        }
 
-            if (DebugUtils.IsDebugBuild)
-                app.UseDeveloperExceptionPage();
-            else
-                app.UseHsts();
-
-            app.UseFileServer(new FileServerOptions
-            {
-                FileProvider = new PhysicalFileProvider(Path.Join(Directory.GetCurrentDirectory(), "data/wwwroot")),
-                EnableDirectoryBrowsing = true,
-            });
-
-            app.UseMvc(routes => routes.MapRoute("default", "{controller=Home}/{action=Index}/{id?}"));
+        public void Start()
+        {
+            throw new NotImplementedException();
         }
     }
 }

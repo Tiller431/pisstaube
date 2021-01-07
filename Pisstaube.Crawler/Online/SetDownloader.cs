@@ -13,19 +13,13 @@ using Pisstaube.CacheDb.Models;
 using Pisstaube.Core.Database;
 using Pisstaube.Core.Database.Models;
 using Pisstaube.Core.Engine;
+using Pisstaube.Core.Events;
 using Pisstaube.Utils;
 
-namespace Pisstaube.Online
+namespace Pisstaube.Crawler.Online
 {
     public class SetDownloader
     {
-        public class DownloadMapResponse
-        {
-            public string File;
-            public Stream FileStream;
-            public string IpfsHash;
-        }
-
         private readonly Storage _storage;
         private readonly IAPIProvider _apiProvider;
         private readonly PisstaubeDbContext _dbContext;
@@ -53,7 +47,7 @@ namespace Pisstaube.Online
             _ipfsCache = ipfsCache;
         }
 
-        public DownloadMapResponse DownloadMap(int beatmapSetId, bool dlVideo = false, bool ipfs = false)
+        public DownloadMapResponse DownloadMap(int beatmapSetId, bool dlVideo = false)
         {
             if (_apiProvider.State == APIState.Offline)
             {
@@ -119,7 +113,6 @@ namespace Pisstaube.Online
                 
                 return new DownloadMapResponse {
                     File = $"{set.SetId} {set.Artist} - {set.Title}.osz",
-                    FileStream = !ipfs || cac.Result == "" ? cacheStorage.GetStream (bmFileId, FileAccess.Read, FileMode.Open) : null, // Don't even bother opening a stream.
                     IpfsHash = cac.Result,
                 };
             }
@@ -145,7 +138,6 @@ namespace Pisstaube.Online
             
             return new DownloadMapResponse {
                 File = $"{set.SetId} {set.Artist} - {set.Title}.osz",
-                FileStream = !ipfs || cache.Result == "" ? cacheStorage.GetStream (bmFileId, FileAccess.Read, FileMode.Open) : null, // Don't even bother opening a stream.
                 IpfsHash = cache.Result,
             };
         }

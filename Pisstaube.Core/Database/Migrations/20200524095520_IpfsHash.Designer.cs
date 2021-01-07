@@ -3,13 +3,15 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Pisstaube.Core.Database.Migrations
 {
     [DbContext(typeof(PisstaubeDbContext))]
-    partial class PisstaubeDbContextModelSnapshot : ModelSnapshot
+    [Migration("20200524095520_IpfsHash")]
+    partial class IpfsHash
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

@@ -1,13 +1,13 @@
-﻿using Utf8Json;
-using Utf8Json.Formatters;
-using Utf8Json.Resolvers;
+﻿
+using System.Text.Json;
 
-namespace Pisstaube.Utils
+namespace Pisstaube.Core.Utils
 {
     public static class JsonUtil
     {
         public static void Initialize()
         {
+            /*
             CompositeResolver.RegisterAndSetAsDefault(new IJsonFormatter[] {
                 new DateTimeFormatter("yyyy-MM-ddTHH:mm:ssZ"),
                 new NullableDateTimeFormatter("yyyy-MM-ddTHH:mm:ssZ")
@@ -16,11 +16,12 @@ namespace Pisstaube.Utils
 
                 StandardResolver.AllowPrivateExcludeNullSnakeCase
             });
+            */
         }
         
         public static string Serialize<T>(T obj)
         {
-            var serializedData = JsonSerializer.ToJsonString(
+            var serializedData = JsonSerializer.Serialize(
                 obj
             );
     
@@ -29,7 +30,8 @@ namespace Pisstaube.Utils
         
         public static T Deserialize<T>(string data) where T : class, new()
         {
-            return new();
+            var deserializedObject = JsonSerializer.Deserialize<T>(data);
+            return deserializedObject;
         }
     }
 }

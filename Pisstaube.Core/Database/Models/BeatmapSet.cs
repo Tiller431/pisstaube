@@ -73,6 +73,7 @@ namespace Pisstaube.Core.Database.Models
 
         [DataMember(Name = "Favourites")] public long Favourites { get; set; }
 
+        [IgnoreDataMember] public string IpfsHash { get; set; }
         [IgnoreDataMember] public bool Disabled { get; set; }
 
         public static BeatmapSet FromBeatmapSetInfo(BeatmapSetInfo info)
