@@ -76,45 +76,30 @@ namespace Pisstaube.Crawler
             var db = redis.GetDatabase(int.Parse(Environment.GetEnvironmentVariable("REDIS_DATABASE") ?? "-1"));
             var sub = redis.GetSubscriber();
 
-            Dictionary<string, bool> alreadySet = new();
-
-            sub.Subscribe($"__keyspace@{db.Database}__:*", (channel, value) =>
+            sub.Subscribe($"chimu:downloads", (channel, value) =>
             {
-                var key = channel.ToString().TrimStart($"__keyspace@{db.Database}__".ToArray()).TrimStart(':');
+                Console.WriteLine("Download was requested...");
 
-                // Ignore duplicates
-                if (alreadySet.ContainsKey(key))
-                {
-                    alreadySet.Remove(key);
-                    return;
-                }
-                
-                if (key.StartsWith("pisstaube:events:downloads:"))
-                {
-                    Console.WriteLine("Download was requested...");
-
-                    var data = db.StringGet(key);
-                    Console.WriteLine(key);
-                    Console.WriteLine(data);
+                Console.WriteLine(channel);
+                Console.WriteLine(value);
                     
-                    var request = JsonUtil.Deserialize<DownloadMapRequest>(data);
+                var request = JsonUtil.Deserialize<DownloadMapRequest>(value);
 
-                    try
-                    {
-                        var response = setDownloader.DownloadMap(request.SetId, request.NoVideo);
-                        db.StringSet(key, JsonUtil.Serialize(response));
-                        alreadySet.Add(key, true);
-                        Console.WriteLine("Success");
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine("Failure");
-                        Console.WriteLine(ex);
-                        db.KeyDelete(key);
-                    }
+                try
+                {
+                    var response = setDownloader.DownloadMap(int.Parse(request.SetId), request.NoVideo);
+
+                    response._ID = request._ID;
+                    
+                    db.Publish("chimu:s:downloads", JsonUtil.Serialize(response));
+                    
+                    Console.WriteLine("Success");
                 }
-
-                Console.WriteLine("___________________________________");
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Failure");
+                    Console.WriteLine(ex);
+                }
             });
             
             while (true)

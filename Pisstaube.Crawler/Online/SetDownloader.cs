@@ -67,6 +67,14 @@ namespace Pisstaube.Crawler.Online
                 if ((set = _dbContext.BeatmapSet
                         .FirstOrDefault(bmSet => bmSet.SetId == beatmapSetId && !bmSet.Disabled)) == null)
                     throw new LegacyScoreDecoder.BeatmapNotFoundException();
+
+                if (!string.IsNullOrEmpty(set.IpfsHash))
+                {
+                    return new DownloadMapResponse {
+                        File = $"{set.SetId} {set.Artist} - {set.Title}.osz",
+                        IpfsHash = set.IpfsHash,
+                    };
+                }
             }
                 
             var cacheStorage = _storage.GetStorageForDirectory("cache");
