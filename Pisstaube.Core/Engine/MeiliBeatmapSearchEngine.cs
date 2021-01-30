@@ -42,7 +42,7 @@ namespace Pisstaube.Core.Engine
             var c = 0;
             while (c < elasticBeatmaps.Count)
             {
-                var truncatedBeatmaps = elasticBeatmaps.Skip(c).Take(50_000).ToList(); // Submit beatmaps in Chunks
+                var truncatedBeatmaps = elasticBeatmaps.Skip(c).Take(10_000).ToList(); // Submit beatmaps in Chunks
 
                 //await _index.DeleteDocuments(truncatedBeatmaps.Select(bm => bm.Id));
                 await _index.AddDocuments(truncatedBeatmaps);

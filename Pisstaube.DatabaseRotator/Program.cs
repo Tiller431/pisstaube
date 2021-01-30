@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
@@ -44,10 +45,9 @@ namespace Pisstaube.DatabaseRotator
             }
             
             Logger.LogPrint("Fetching all beatmap sets...");
-            var beatmapSets = await _dbContext.BeatmapSet
-                .Include(o => o.ChildrenBeatmaps)
-                .ToListAsync();
-            Logger.LogPrint($"{beatmapSets.Count} Beatmap sets to index.", LoggingTarget.Database);
+            var beatmapSets = _dbContext.BeatmapSet
+                .Include(o => o.ChildrenBeatmaps);
+            Logger.LogPrint($"{await beatmapSets.CountAsync()} Beatmap sets to index.", LoggingTarget.Database);
             
             await _searchEngine.Index(beatmapSets);
         }
