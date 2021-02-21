@@ -117,7 +117,7 @@ namespace Pisstaube.Crawler.Online
                     db.Context.CacheBeatmapSet.Update(cachedMap);
                 }
                 
-                var cac = _ipfsCache.CacheFile("cache/" + bmFileId);
+                var cac = _ipfsCache.CacheFile("data/cache/" + bmFileId);
                 
                 return new DownloadMapResponse {
                     File = $"{set.SetId} {set.Artist} - {set.Title}.osz",
@@ -142,7 +142,7 @@ namespace Pisstaube.Crawler.Online
                     db.Context.CacheBeatmapSet.Update(cachedMap);
                 }
             
-            var cache = _ipfsCache.CacheFile("cache/" + bmFileId);
+            var cache = _ipfsCache.CacheFile("data/cache/" + bmFileId);
             
             return new DownloadMapResponse {
                 File = $"{set.SetId} {set.Artist} - {set.Title}.osz",

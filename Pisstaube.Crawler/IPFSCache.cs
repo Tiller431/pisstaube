@@ -19,13 +19,12 @@ namespace Pisstaube.Allocation
                 throw new ArgumentNullException(nameof(host), "IPFS_CLUSTER_HOST must be set!");
             
             if (string.IsNullOrEmpty(secret))
-                throw new ArgumentNullException(nameof(secret), "IPFS_CLUSTER_HOST must be set!");
+                throw new ArgumentNullException(nameof(secret), "IPFS_CLUSTER_SECRET must be set!");
 
             var p = new Process
             {
                 StartInfo =
                 {
-                    UseShellExecute = true,
                     RedirectStandardOutput = true,
                     FileName = "ipfs-cluster-ctl",
                     Arguments = $"--host {host} --secret {secret} add {path} -Q --name {path}"

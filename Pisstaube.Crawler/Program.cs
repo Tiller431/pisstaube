@@ -83,14 +83,19 @@ namespace Pisstaube.Crawler
                 Console.WriteLine(channel);
                 Console.WriteLine(value);
                     
-                var request = JsonUtil.Deserialize<DownloadMapRequest>(value);
+                DownloadMapRequest request = null;
+                try {
+                    request = JsonUtil.Deserialize<DownloadMapRequest>(value);
+                } catch (Exception e) {
+                    Console.WriteLine(e);
+                }
 
                 try
                 {
-                    var response = setDownloader.DownloadMap(int.Parse(request.SetId), request.NoVideo);
-
-                    response._ID = request._ID;
+                    var response = setDownloader.DownloadMap(int.Parse(request.SetId), request.NoVideo == "0");
                     
+                    response._ID = request._ID;
+
                     db.Publish("chimu:s:downloads", JsonUtil.Serialize(response));
                     
                     Console.WriteLine("Success");
