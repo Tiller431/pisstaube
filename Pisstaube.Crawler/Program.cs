@@ -5,6 +5,7 @@ using System.Threading;
 using Autofac;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.Caching.StackExchangeRedis;
+using osu.Framework.Logging;
 using osu.Game.Online.API;
 using Pisstaube.CacheDb;
 using Pisstaube.Core.Database;
@@ -78,16 +79,16 @@ namespace Pisstaube.Crawler
 
             sub.Subscribe($"chimu:downloads", (channel, value) =>
             {
-                Console.WriteLine("Download was requested...");
+                Logger.LogPrint("Download was requested...");
 
-                Console.WriteLine(channel);
-                Console.WriteLine(value);
+                Logger.LogPrint(channel);
+                Logger.LogPrint(value);
                     
                 DownloadMapRequest request = null;
                 try {
                     request = JsonUtil.Deserialize<DownloadMapRequest>(value);
                 } catch (Exception e) {
-                    Console.WriteLine(e);
+                    Logger.Error(e, "Failed to download Beatmap");
                 }
 
                 try
@@ -98,12 +99,11 @@ namespace Pisstaube.Crawler
 
                     db.Publish("chimu:s:downloads", JsonUtil.Serialize(response));
                     
-                    Console.WriteLine("Success");
+                    Logger.LogPrint("Success");
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("Failure");
-                    Console.WriteLine(ex);
+                    Logger.Error(ex, "Failed to download Beatmap");
                 }
             });
             
