@@ -5,3 +5,8 @@ image:
 ports:
   - port: 8080
     onOpen: open-preview
+
+tasks:
+- init: >
+    dotnet restore &&
+    dotnet publish Pisstaube -c Release -o pisstaube
